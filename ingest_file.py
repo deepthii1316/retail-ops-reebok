@@ -1,0 +1,43 @@
+import os
+import pandas as pd
+from supabase import create_client
+from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
+supabase_url = os.environ["SUPABASE_URL"]
+supabase_key = os.environ["SUPABASE_KEY"]
+
+def ingest_file(filepath, uploaded_by):
+    df = pd.read_excel(filepath, dtype=str, header=7)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df.columns = df.columns.str.strip()
+    
+    df = df[df['Store Number'].notna()]   # drop footer/summary rows
+    
+    df['Bill Date'] = pd.to_datetime(df['Bill Date']).dt.strftime('%d-%m-%Y')
+    
+    
+
+    # Convert records and sanitize NaN/float empty values to None (valid JSON nulls)
+    raw_records = df.to_dict(orient='records')
+    records = []
+    for r in raw_records:
+        clean_row = {}
+        for k, v in r.items():
+            if pd.isna(v) or (isinstance(v, float) and (v != v)):
+                clean_row[k] = None
+            else:
+                clean_row[k] = str(v)
+        clean_row['uploaded_at'] = datetime.now(timezone.utc).isoformat()
+        clean_row['uploaded_by'] = uploaded_by
+        clean_row['source_file_name'] = os.path.basename(filepath)
+        clean_row['ingestion_method'] = 'manual'
+        records.append(clean_row)
+
+    supabase = create_client(supabase_url, supabase_key)
+    res = supabase.schema('raw').table('raw_sap_reebok_sales').insert(records).execute()
+    print(f"Successfully inserted {len(records)} records into raw.raw_sap_reebok_sales!")
+
+if __name__ == "__main__":
+    ingest_file(filepath=r"E:\vs-corp\sales-report\MFL Bill Wise Item List (96).xlsx", uploaded_by="deepthi")
