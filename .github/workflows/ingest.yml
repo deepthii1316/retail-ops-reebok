@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'data/**'
+  workflow_dispatch:
 jobs:
   ingest:
     runs-on: ubuntu-latest
