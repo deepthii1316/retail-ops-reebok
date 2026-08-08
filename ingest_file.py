@@ -4,10 +4,23 @@ import pandas as pd
 from supabase import create_client
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 supabase_url = os.environ["SUPABASE_URL"]
 supabase_key = os.environ["SUPABASE_KEY"]
+
+
+def resolve_filepath(cli_filepath):
+    filepath = (cli_filepath or "").strip()
+    if filepath:
+        return filepath
+
+    data_dir = Path(__file__).resolve().parent / "data"
+    xlsx_files = sorted(data_dir.glob("*.xlsx"))
+    if not xlsx_files:
+        raise FileNotFoundError(f"No .xlsx files found in {data_dir}")
+    return str(xlsx_files[0])
 
 def ingest_file(filepath, uploaded_by):
     df = pd.read_excel(filepath, dtype=str, header=7)
@@ -41,6 +54,7 @@ def ingest_file(filepath, uploaded_by):
     print(f"Successfully inserted {len(records)} records into raw.raw_sap_reebok_sales!")
 
 if __name__ == "__main__":
-    filepath = sys.argv[1] if len(sys.argv) > 1 else r"E:\vs-corp\sales-report\MFL Bill Wise Item List (96).xlsx"
+    filepath_arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    filepath = resolve_filepath(filepath_arg)
     uploaded_by = sys.argv[2] if len(sys.argv) > 2 else "deepthi"
     ingest_file(filepath=filepath, uploaded_by=uploaded_by)
