@@ -22,6 +22,7 @@ jobs:
         run: pip install pandas supabase openpyxl python-dotenv
 
       - name: Run ingestion script
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_KEY != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
