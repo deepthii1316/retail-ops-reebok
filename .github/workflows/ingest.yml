@@ -1,0 +1,29 @@
+name: Ingest SAP Sales Data
+
+on:
+  push:
+    paths:
+      - 'data/**'
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas supabase openpyxl python-dotenv
+
+      - name: Run ingestion script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python ingest_file.py "${{ github.event.head_commit.added[0] }}" "${{ github.actor }}"

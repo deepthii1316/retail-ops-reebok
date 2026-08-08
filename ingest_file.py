@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 from supabase import create_client
 from datetime import datetime, timezone
@@ -40,4 +41,6 @@ def ingest_file(filepath, uploaded_by):
     print(f"Successfully inserted {len(records)} records into raw.raw_sap_reebok_sales!")
 
 if __name__ == "__main__":
-    ingest_file(filepath=r"E:\vs-corp\sales-report\MFL Bill Wise Item List (96).xlsx", uploaded_by="deepthi")
+    filepath = sys.argv[1] if len(sys.argv) > 1 else r"E:\vs-corp\sales-report\MFL Bill Wise Item List (96).xlsx"
+    uploaded_by = sys.argv[2] if len(sys.argv) > 2 else "deepthi"
+    ingest_file(filepath=filepath, uploaded_by=uploaded_by)
