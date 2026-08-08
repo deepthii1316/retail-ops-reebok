@@ -26,4 +26,6 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          python ingest_file.py "${{ github.event.head_commit.added[0] }}" "${{ github.actor }}"
+          for file in data/*.xlsx; do
+          python ingest_file.py "$file" "${{ github.actor }}"
+          done
